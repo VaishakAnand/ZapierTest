@@ -16,7 +16,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             company text,
             job_title text,
             ticket_name text,
-            ticket_number text PRIMARY KEY,
+            ticket_no text PRIMARY KEY,
             CONSTRAINT email_unique UNIQUE (email)
             )`,
         (err) => {
@@ -26,7 +26,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }else{
                 // Table just created, creating some rows
                 console.log("attendees table newly created")
-                var insert = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_number) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                var insert = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_no) VALUES (?, ?, ?, ?, ?, ?, ?)'
                 db.run(insert, ["Jon", "Jacob", "circuitbreaker20@gmail.com", "ABC", "CEO", "VIP", "0001"])
                 db.run(insert, ["Tom", "Timothy", "greatplay@gmail.com", "BCD", "CTO", "VIP", "0002"])
             }

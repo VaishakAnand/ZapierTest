@@ -48,7 +48,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
     if (req.params.ACTION_METHOD == 'create') {
         console.log("recognise create")
-        var sql = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_number) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        var sql = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_no) VALUES (?, ?, ?, ?, ?, ?, ?)'
         var params = [data.firstname, data.lastname, data.email, data.company, data.job_title, data.ticket_name, data.ticket_no]
 
         db.run(sql, params, (err, result) => {
@@ -59,7 +59,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
         })
     } else if (req.params.ACTION_METHOD == 'update') {
         console.log("recognise update")
-        var sql = 'UPDATE attendees set firstname = ?, lastname = ?, email = ?, company = ?, job_title = ?, ticket_name = ? WHERE ticket_number = ?'
+        var sql = 'UPDATE attendees set firstname = ?, lastname = ?, email = ?, company = ?, job_title = ?, ticket_name = ? WHERE ticket_no = ?'
         var params = [data.firstname, data.lastname, data.email, data.company, data.job_title, data.ticket_name, data.ticket_no]
 
         db.run(sql, params, (err, result) => {
