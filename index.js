@@ -56,10 +56,6 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
                 res.status(400).json({"error": err.message})
                 return;
             }
-            // res.json({
-            //     "message": "success",
-            //     "data": data,
-            // })
         })
     } else if (req.params.ACTION_METHOD == 'update') {
         console.log("recognise update")
@@ -71,10 +67,6 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
                 res.status(400).json({"error": err.message})
                 return;
             }
-            // res.json({
-            //     "message": "success",
-            //     "data": data,
-            // })
         })
     }
 
@@ -121,6 +113,7 @@ app.post("/webhooks", (req, res, next) => {
             "data": data,
         })
     })
+    console.log(data)
     console.log(req.body.hookUrl)
 })
 
