@@ -85,7 +85,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
         
         console.log("requested url = ", row.hookUrl)
         axios.post(row.hookUrl, data).then((response) => {
-            console.log(response);
+            
           }, (error) => {
             console.log(error);
           });
