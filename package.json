@@ -1,0 +1,17 @@
+{
+  "name": "zapierintegrationtest",
+  "version": "1.0.0",
+  "description": "To be used to test rest hook for zapier integration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "request": "^2.88.2",
+    "sqlite3": "^5.0.2"
+  }
+}
