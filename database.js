@@ -42,7 +42,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         (err) => {
             if (err) {
                 // Table already created
-                console.log(err)
+                console.log("webhooks table already created")
             }else{
                 // Table just created, creating some rows
                 console.log("webhooks table newly created")

@@ -1,7 +1,7 @@
+const { default: axios } = require("axios");
 var express = require("express")
 var app = express()
 var db = require('./database')
-const request = require('request');
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -46,7 +46,6 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
         ticket_no: req.body.ticket_no
     }
 
-    console.log(req.params.ACTION_METHOD)
     if (req.params.ACTION_METHOD == 'create') {
         console.log("recognise create")
         var sql = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_number) VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -92,16 +91,13 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
             "data": row,
         })
         
+        console.log("requested url = ", row.hookUrl)
+        axios.post(row.hookUrl, data).then((response) => {
+            console.log(response);
+          }, (error) => {
+            console.log(error);
+          });
         
-        request({
-            method: 'POST',
-            uri: row.hookUrl,
-            headers : {
-                "content-type": "application/json",
-            },
-            body: data,
-            json: true
-        })
     })
 })
 
