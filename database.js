@@ -48,9 +48,32 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.log("webhooks table newly created")
                 var insert = 'INSERT INTO webhooks (projectId, eventId, ACTION_METHOD, hookUrl) VALUES (?,?,?,?)'
             }
-        });  
+        });
+
+        db.run(`CREATE TABLE checkedInAttendees (
+            firstname text,
+            lastname text, 
+            email text UNIQUE,
+            company text,
+            job_title text,
+            ticket_name text,
+            ticket_no text PRIMARY KEY,
+            FOREIGN KEY(firstname, lastname, email, company, job_title, ticket_name, ticket_no) 
+            REFERENCES attendees(firstname, lastname, email, company, job_title, ticket_name, ticket_no) ON UPDATE CASCADE
+            )`,
+            (err) => {
+                if (err) {
+                    // Table already created
+                    console.log("checkedInAttendees table already created")
+                }else{
+                    // Table just created, creating some rows
+                    console.log("checkedInAttendees table newly created")
+                }
+            }
+        )
     }
 });
 
+db.get("PRAGMA foreign_keys = ON");
 
 module.exports = db
