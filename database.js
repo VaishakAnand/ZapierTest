@@ -58,8 +58,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             job_title text,
             ticket_name text,
             ticket_no text PRIMARY KEY,
-            FOREIGN KEY(firstname, lastname, email, company, job_title, ticket_name, ticket_no) 
-            REFERENCES attendees(firstname, lastname, email, company, job_title, ticket_name, ticket_no) ON UPDATE CASCADE
+            FOREIGN KEY(ticket_no) REFERENCES attendees(ticket_no) ON UPDATE CASCADE
             )`,
             (err) => {
                 if (err) {
