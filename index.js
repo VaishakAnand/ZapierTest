@@ -131,6 +131,49 @@ app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
     )
 })
 
+app.post("/checkin/:projectId/:eventId", (req, res, next) => {
+    var data = {
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        email: req.body.email,
+        company: req.body.company,
+        job_title: req.body.job_title,
+        ticket_name: req.body.ticket_name,
+        ticket_no: req.body.ticket_no
+    }
+
+    var sql = 'INSERT INTO checkedInAttendees(firstname, lastname, email, company, job_title, ticket_name, ticket_no) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    var params = [data.firstname, data.lastname, data.email, data.company, data.job_title, data.ticket_name, data.ticket_no]
+
+    db.run(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({"error": err.message})
+            return;
+        }
+    })
+
+    var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
+    var newParams = [req.params.projectId, req.params.eventId, "checkIn"]
+    db.get(getHookurl, newParams,(err, row) => {
+        if (err) {
+            res.status(400).json({"error": err.message})
+            return;
+        }
+
+        res.json({
+            "message": "success",
+            "data": row,
+        })
+        
+        console.log("requested url = ", row.hookUrl)
+        axios.post(row.hookUrl, data).then((response) => {
+            
+        }, (error) => {
+            console.log(error);
+        });
+    })
+})
+
 // Default response for any other request
 app.use(function(req, res){
     res.status(404);
