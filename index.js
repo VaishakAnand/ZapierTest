@@ -153,7 +153,7 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
     })
 
     var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
-    var newParams = [req.params.projectId, req.params.eventId, "checkIn"]
+    var newParams = [req.params.projectId, req.params.eventId, "checkin"]
     db.get(getHookurl, newParams,(err, row) => {
         if (err) {
             res.status(400).json({"error": err.message})
