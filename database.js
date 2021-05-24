@@ -22,10 +22,10 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             (err) => {
                 if (err) {
                     // Table already created
-                    console.log("attendees table already created")
+                    // console.log("attendees table already created")
                 } else {
                     // Table just created, creating some rows
-                    console.log("attendees table newly created")
+                    // console.log("attendees table newly created")
                     var insert = 'INSERT INTO attendees (firstname, lastname, email, company, job_title, ticket_name, ticket_no) VALUES (?, ?, ?, ?, ?, ?, ?)'
                     db.run(insert, ["Jon", "Jacob", "circuitbreaker20@gmail.com", "ABC", "CEO", "VIP", "0001"])
                     db.run(insert, ["Tom", "Timothy", "greatplay@gmail.com", "BCD", "CTO", "VIP", "0002"])
@@ -42,10 +42,10 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             (err) => {
                 if (err) {
                     // Table already created
-                    console.log("webhooks table already created")
+                    // console.log("webhooks table already created")
                 } else {
                     // Table just created, creating some rows
-                    console.log("webhooks table newly created")
+                    // console.log("webhooks table newly created")
                     var insert = 'INSERT INTO webhooks (projectId, eventId, ACTION_METHOD, hookUrl) VALUES (?,?,?,?)'
                 }
             });
@@ -63,10 +63,10 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             (err) => {
                 if (err) {
                     // Table already created
-                    console.log("checkedInAttendees table already created")
+                    // console.log("checkedInAttendees table already created")
                 } else {
                     // Table just created, creating some rows
-                    console.log("checkedInAttendees table newly created")
+                    // console.log("checkedInAttendees table newly created")
                 }
             }
         )
@@ -78,10 +78,10 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             (err) => {
                 if (err) {
                     // Table already created
-                    console.log("Users table already created")
+                    // console.log("Users table already created")
                 } else {
                     // Table just created, creating some rows
-                    console.log("Users table newly created")
+                    // console.log("Users table newly created")
                 }
             }
         )

@@ -56,12 +56,14 @@ passport.use(new GoogleStrategy({
             }
         )
 
-        return cb(null, user)
+        return cb(error, user)
     }
 ));
 
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    console.log("Serialising User")
+    done(null, 1);
+    // done(null, user.googleId);
 });
 
 passport.deserializeUser((id, done) => {
@@ -70,9 +72,10 @@ passport.deserializeUser((id, done) => {
         id,
         (err, row) => {
             console.log(row)
-            done(null, row)
+            return done(null, row)
         }
     );
+    console.log("Deserialising User")
     // User.findById(id).then(user => {
     //     done(null, user);
     // });
@@ -96,7 +99,7 @@ app.get("/auth/google", passport.authenticate("google", {
     prompt: "select_account"
 }));
 
-app.get("/auth/google/redirect", passport.authenticate('google'), (req, res) => {
+app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
     console.log("redirecting")
     res.send(req.user.userName)
 });
