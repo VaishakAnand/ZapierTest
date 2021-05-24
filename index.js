@@ -1,15 +1,51 @@
 const { default: axios } = require("axios");
 var express = require("express")
-var app = express()
 var db = require('./database')
+const passport = require("passport")
+require('dotenv').config();
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
+var app = express()
 app.use(express.json());
 app.use(express.urlencoded({
-  extended: false
+    extended: false
 }));
 
+passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "/auth/google/redirect"
+},
+    function (accessToken, refreshToken, profile, cb) {
+        var user;
+        db.get(
+            'SELECT * FROM Users WHERE googleId = ? AND userName = ?',
+            [profile.id, profile.displayName],
+            (err, row) => {
+                if (row == undefined) {
+                    db.run('INSERT INTO Users(googleId, userName) VALUES (?, ?)',
+                        [profile.id, profile.displayName],
+                        (err2, res) => {
+                            user = {
+                                googleId: profile.id,
+                                userName: profile.displayName
+                            }
+                        }
+                    )
+                } else {
+                    user = row;
+                }
+            }
+        )
+
+        return cb("error", user)
+    }
+));
+
+
+
 // Server port
-var HTTP_PORT =  process.env.PORT || 8000 
+var HTTP_PORT = process.env.PORT || 8000
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port ", HTTP_PORT)
@@ -17,7 +53,7 @@ app.listen(HTTP_PORT, () => {
 
 // Root endpoint
 app.get("/", (req, res, next) => {
-    res.json({"message": "Ok"})
+    res.json({ "message": "Ok" })
 });
 
 app.get("/attendees", (req, res, next) => {
@@ -25,11 +61,11 @@ app.get("/attendees", (req, res, next) => {
     var params = []
     db.all(sql, params, (err, rows) => {
         if (err) {
-            res.status(400).json({"error":err.message});
+            res.status(400).json({ "error": err.message });
             return;
         }
         res.json({
-            "message": "success", 
+            "message": "success",
             "data": rows
         })
     });
@@ -53,7 +89,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
         db.run(sql, params, (err, result) => {
             if (err) {
-                res.status(400).json({"error": err.message})
+                res.status(400).json({ "error": err.message })
                 return;
             }
         })
@@ -64,7 +100,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
         db.run(sql, params, (err, result) => {
             if (err) {
-                res.status(400).json({"error": err.message})
+                res.status(400).json({ "error": err.message })
                 return;
             }
         })
@@ -72,9 +108,9 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
     var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
     var newParams = [req.params.projectId, req.params.eventId, req.params.ACTION_METHOD]
-    db.get(getHookurl, newParams,(err, row) => {
+    db.get(getHookurl, newParams, (err, row) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
 
@@ -82,14 +118,14 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
             "message": "success",
             "data": row,
         })
-        
+
         console.log("requested url = ", row.hookUrl)
         axios.post(row.hookUrl, data).then((response) => {
-            
-          }, (error) => {
+
+        }, (error) => {
             console.log(error);
-          });
-        
+        });
+
     })
 })
 
@@ -98,14 +134,14 @@ app.post("/webhooks", (req, res, next) => {
         projectId: req.body.projectId,
         eventId: req.body.eventId,
         ACTION_METHOD: req.body.ACTION_METHOD,
-        hookUrl: req.body.hookUrl 
+        hookUrl: req.body.hookUrl
     }
 
     var sql = 'INSERT INTO webhooks (projectId, eventId, ACTION_METHOD, hookUrl) VALUES (?,?,?,?)'
     var params = [data.projectId, data.eventId, data.ACTION_METHOD, data.hookUrl]
     db.run(sql, params, (err, result) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
         res.json({
@@ -122,11 +158,11 @@ app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
         'DELETE FROM webhooks where projectId = ? and eventId = ? and ACTION_METHOD = ?',
         req.params.projectId, req.params.eventId, req.params.ACTION_METHOD,
         function (err, result) {
-            if (err){
-                res.status(400).json({"error": res.message})
+            if (err) {
+                res.status(400).json({ "error": res.message })
                 return;
             }
-            res.json({"message":"deleted", changes: this.changes})
+            res.json({ "message": "deleted", changes: this.changes })
         }
     )
 })
@@ -147,16 +183,16 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
 
     db.run(sql, params, (err, result) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
     })
 
     var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
     var newParams = [req.params.projectId, req.params.eventId, "checkin"]
-    db.get(getHookurl, newParams,(err, row) => {
+    db.get(getHookurl, newParams, (err, row) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
 
@@ -164,10 +200,10 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
             "message": "success",
             "data": row,
         })
-        
+
         console.log("requested url = ", row.hookUrl)
         axios.post(row.hookUrl, data).then((response) => {
-            
+
         }, (error) => {
             console.log(error);
         });
@@ -175,6 +211,6 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
 })
 
 // Default response for any other request
-app.use(function(req, res){
+app.use(function (req, res) {
     res.status(404);
 });
