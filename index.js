@@ -4,12 +4,23 @@ var db = require('./database')
 const passport = require("passport")
 require('dotenv').config();
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const cookieSession = require('cookie-session')
 
 var app = express()
 app.use(express.json());
 app.use(express.urlencoded({
     extended: false
 }));
+
+app.use(cookieSession({
+    // milliseconds of a day
+    maxAge: 24 * 60 * 60 * 1000,
+    keys: [process.env.COOKIE_SECRET]
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
@@ -42,6 +53,15 @@ passport.use(new GoogleStrategy({
     }
 ));
 
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+    User.findById(id).then(user => {
+        done(null, user);
+    });
+});
 
 
 // Server port
