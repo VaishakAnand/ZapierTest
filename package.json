@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "test"
+    "dev": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,5 +17,8 @@
     "passport": "^0.4.1",
     "passport-google-oauth20": "^2.0.0",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }

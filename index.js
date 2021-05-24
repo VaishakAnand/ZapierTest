@@ -29,6 +29,8 @@ passport.use(new GoogleStrategy({
 },
     function (accessToken, refreshToken, profile, cb) {
         var user;
+        var error;
+
         db.get(
             'SELECT * FROM Users WHERE googleId = ? AND userName = ?',
             [profile.id, profile.displayName],
@@ -37,19 +39,24 @@ passport.use(new GoogleStrategy({
                     db.run('INSERT INTO Users(googleId, userName) VALUES (?, ?)',
                         [profile.id, profile.displayName],
                         (err2, res) => {
+                            error = err2
                             user = {
                                 googleId: profile.id,
                                 userName: profile.displayName
                             }
                         }
                     )
+                    console.log("New entry into Users table")
                 } else {
+                    error = err;
                     user = row;
+                    console.log("Already exist in Users table")
+                    console.log(row)
                 }
             }
         )
 
-        return cb("error", user)
+        return cb(null, user)
     }
 ));
 
@@ -58,9 +65,17 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-    User.findById(id).then(user => {
-        done(null, user);
-    });
+    db.get(
+        'SELECT * FROM Users WHERE googleId = ?',
+        id,
+        (err, row) => {
+            console.log(row)
+            done(null, row)
+        }
+    );
+    // User.findById(id).then(user => {
+    //     done(null, user);
+    // });
 });
 
 
@@ -75,6 +90,25 @@ app.listen(HTTP_PORT, () => {
 app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
+
+app.get("/auth/google", passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account"
+}));
+
+app.get("/auth/google/redirect", passport.authenticate('google'), (req, res) => {
+    console.log("redirecting")
+    res.send(req.user.userName)
+});
+
+app.get("/auth/logout", (req, res) => {
+    req.logout();
+
+    req.session = null;
+
+    res.send(req.user);
+});
+
 
 app.get("/attendees", (req, res, next) => {
     var sql = "select * from attendees"
