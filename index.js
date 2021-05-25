@@ -53,7 +53,7 @@ app.get("/auth/google", passport.authenticate("google", {
 }));
 
 app.get("/auth/google/redirect", passport.authenticate('google', { failureMessage: "Failed" }), function (req, res) {
-    console.log(req.baseUrl)
+    // console.log(req)
     res.send(req.user.userName)
 });
 

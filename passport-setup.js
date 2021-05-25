@@ -11,10 +11,10 @@ passport.serializeUser((user, cb) => {
 
 passport.deserializeUser((id, cb) => {
     db.get(
-        'SELECT * FROM Users WHERE rowid = ?',
+        'SELECT rowid, googleId, userName FROM Users WHERE rowid = ?',
         id,
         (err, row) => {
-            console.log(row)
+            // console.log(row)
             return cb(null, row)
         }
     );
@@ -30,6 +30,7 @@ passport.use(new GoogleStrategy({
         var user;
         var error;
 
+        console.log(accessToken)
         db.get(
             'SELECT rowid, googleId, userName FROM Users WHERE googleId = ? AND userName = ?',
             [profile.id, profile.displayName],
@@ -43,11 +44,11 @@ passport.use(new GoogleStrategy({
                                 googleId: profile.id,
                                 userName: profile.displayName
                             }
-
+                            console.log("New entry into Users table")
                             return cb(error, user)
                         }
                     )
-                    console.log("New entry into Users table")
+
                 } else {
                     error = err;
                     user = row;
