@@ -1,15 +1,42 @@
 const { default: axios } = require("axios");
 var express = require("express")
-var app = express()
 var db = require('./database')
+const cors = require('cors')
+const passport = require("passport")
+require('dotenv').config();
+require('./passport-setup');
 
+var app = express()
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({
-  extended: false
+    extended: false
+}));
+app.use(require('express-session')({
+    secret: process.env.COOKIE_SECRET, resave: true, saveUninitialized: true
 }));
 
+// Auth middleware that checks if the user is logged in
+const isLoggedIn = (req, res, next) => {
+    if (req.user) {
+        next();
+    } else {
+        res.sendStatus(401);
+    }
+}
+// app.use(cookieSession({
+//     // milliseconds of a day
+//     maxAge: 24 * 60 * 60 * 1000,
+//     keys: [process.env.COOKIE_SECRET]
+// }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+
 // Server port
-var HTTP_PORT =  process.env.PORT || 8000 
+var HTTP_PORT = process.env.PORT || 8000
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port ", HTTP_PORT)
@@ -17,19 +44,78 @@ app.listen(HTTP_PORT, () => {
 
 // Root endpoint
 app.get("/", (req, res, next) => {
-    res.json({"message": "Ok"})
+    res.json({ "message": "Ok" })
 });
+
+// const testMidd = (req, res, next) => {
+//     console.log("lol")
+//     next()
+// }
+
+// app.get("/auth", testMidd, (req, res) => {
+//     res.send(req.body.code)
+// })
+
+app.get("/auth/google", passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account"
+}));
+
+app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
+    // console.log(req.params)
+    db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
+        [req.query.code, req.user.rowid],
+        (err, result) => {
+            // console.log(redirect_uri)
+            axios.post(req.body.redirect_uri, {
+                code: req.query.code
+            }).then(response => {})
+
+            res.status(200).send(req.query.code)
+        }
+    )
+});
+
+app.get("/auth/token", (req, res, next) => {
+    // req.body
+    console.log("Access token requested")
+    db.get("SELECT accessToken FROM Users WHERE authCode = ?",
+        req.body.code,
+        (err, row) => {
+            if (row == undefined) {
+                res.status(404)
+            } else {
+                axios.post(req.body.redirect_uri, {
+                    access_token: row.accessToken
+                }).then(response => {})
+
+                res.status(200).json({
+                    "access_token": row.accessToken
+                })
+            }
+        }
+    )
+})
+
+app.get("/auth/logout", (req, res) => {
+    req.logout();
+
+    req.session = null;
+
+    res.send(req.user);
+});
+
 
 app.get("/attendees", (req, res, next) => {
     var sql = "select * from attendees"
     var params = []
     db.all(sql, params, (err, rows) => {
         if (err) {
-            res.status(400).json({"error":err.message});
+            res.status(400).json({ "error": err.message });
             return;
         }
         res.json({
-            "message": "success", 
+            "message": "success",
             "data": rows
         })
     });
@@ -53,7 +139,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
         db.run(sql, params, (err, result) => {
             if (err) {
-                res.status(400).json({"error": err.message})
+                res.status(400).json({ "error": err.message })
                 return;
             }
         })
@@ -64,7 +150,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
         db.run(sql, params, (err, result) => {
             if (err) {
-                res.status(400).json({"error": err.message})
+                res.status(400).json({ "error": err.message })
                 return;
             }
         })
@@ -72,9 +158,9 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
 
     var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
     var newParams = [req.params.projectId, req.params.eventId, req.params.ACTION_METHOD]
-    db.get(getHookurl, newParams,(err, row) => {
+    db.get(getHookurl, newParams, (err, row) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
 
@@ -82,14 +168,14 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
             "message": "success",
             "data": row,
         })
-        
+
         console.log("requested url = ", row.hookUrl)
         axios.post(row.hookUrl, data).then((response) => {
-            
-          }, (error) => {
+
+        }, (error) => {
             console.log(error);
-          });
-        
+        });
+
     })
 })
 
@@ -98,14 +184,14 @@ app.post("/webhooks", (req, res, next) => {
         projectId: req.body.projectId,
         eventId: req.body.eventId,
         ACTION_METHOD: req.body.ACTION_METHOD,
-        hookUrl: req.body.hookUrl 
+        hookUrl: req.body.hookUrl
     }
 
     var sql = 'INSERT INTO webhooks (projectId, eventId, ACTION_METHOD, hookUrl) VALUES (?,?,?,?)'
     var params = [data.projectId, data.eventId, data.ACTION_METHOD, data.hookUrl]
     db.run(sql, params, (err, result) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
         res.json({
@@ -122,11 +208,11 @@ app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
         'DELETE FROM webhooks where projectId = ? and eventId = ? and ACTION_METHOD = ?',
         req.params.projectId, req.params.eventId, req.params.ACTION_METHOD,
         function (err, result) {
-            if (err){
-                res.status(400).json({"error": res.message})
+            if (err) {
+                res.status(400).json({ "error": res.message })
                 return;
             }
-            res.json({"message":"deleted", changes: this.changes})
+            res.json({ "message": "deleted", changes: this.changes })
         }
     )
 })
@@ -147,16 +233,16 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
 
     db.run(sql, params, (err, result) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
     })
 
     var getHookurl = 'select hookUrl from webhooks where projectId = ? and eventid = ? and ACTION_METHOD = ?'
     var newParams = [req.params.projectId, req.params.eventId, "checkin"]
-    db.get(getHookurl, newParams,(err, row) => {
+    db.get(getHookurl, newParams, (err, row) => {
         if (err) {
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message })
             return;
         }
 
@@ -164,10 +250,10 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
             "message": "success",
             "data": row,
         })
-        
+
         console.log("requested url = ", row.hookUrl)
         axios.post(row.hookUrl, data).then((response) => {
-            
+
         }, (error) => {
             console.log(error);
         });
@@ -175,6 +261,6 @@ app.post("/checkin/:projectId/:eventId", (req, res, next) => {
 })
 
 // Default response for any other request
-app.use(function(req, res){
+app.use(function (req, res) {
     res.status(404);
 });
