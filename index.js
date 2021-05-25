@@ -1,72 +1,13 @@
 const { default: axios } = require("axios");
 var express = require("express")
 var db = require('./database')
+const cors = require('cors')
 const passport = require("passport")
 require('dotenv').config();
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-// const cookieSession = require('cookie-session')
-
-
-
-passport.use(new GoogleStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "/auth/google/redirect"
-},
-    function (accessToken, refreshToken, profile, cb) {
-        var user;
-        var error;
-
-        db.get(
-            'SELECT rowid, googleId, userName FROM Users WHERE googleId = ? AND userName = ?',
-            [profile.id, profile.displayName],
-            (err, row) => {
-                if (row == undefined) {
-                    db.run('INSERT INTO Users(googleId, userName) VALUES (?, ?)',
-                        [profile.id, profile.displayName],
-                        (err2, res) => {
-                            error = err2
-                            user = {
-                                googleId: profile.id,
-                                userName: profile.displayName
-                            }
-                        }
-                    )
-                    console.log("New entry into Users table")
-                } else {
-                    error = err;
-                    user = row;
-                    console.log("Already exist in Users table")
-                    console.log(row)
-                }
-            }
-        )
-
-        return cb(error, user)
-    }
-));
-
-passport.serializeUser((user, cb) => {
-    console.log("Serialising User")
-    cb(null, user.rowid);
-    // done(null, user.googleId);
-});
-
-passport.deserializeUser((id, cb) => {
-    db.get(
-        'SELECT * FROM Users WHERE rowid = ?',
-        id,
-        (err, row) => {
-            console.log(row)
-            return cb(null, row)
-        }
-    );
-    console.log("Deserialising User")
-});
-
-
+require('./passport-setup');
 
 var app = express()
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({
     extended: false
@@ -74,6 +15,15 @@ app.use(express.urlencoded({
 app.use(require('express-session')({
     secret: process.env.COOKIE_SECRET, resave: true, saveUninitialized: true
 }));
+
+// Auth middleware that checks if the user is logged in
+const isLoggedIn = (req, res, next) => {
+    if (req.user) {
+        next();
+    } else {
+        res.sendStatus(401);
+    }
+}
 // app.use(cookieSession({
 //     // milliseconds of a day
 //     maxAge: 24 * 60 * 60 * 1000,
@@ -102,7 +52,7 @@ app.get("/auth/google", passport.authenticate("google", {
     prompt: "select_account"
 }));
 
-app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
+app.get("/auth/google/redirect", passport.authenticate('google', { failureMessage: "Failed" }), function (req, res) {
     console.log(req.baseUrl)
     res.send(req.user.userName)
 });
