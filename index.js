@@ -47,20 +47,55 @@ app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
 
+// const testMidd = (req, res, next) => {
+//     console.log("lol")
+//     next()
+// }
+
+// app.get("/auth", testMidd, (req, res) => {
+//     res.send(req.body.code)
+// })
+
 app.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"],
     prompt: "select_account"
 }));
 
-app.get("/auth/google/redirect", passport.authenticate('google', { failureMessage: "Failed" }), function (req, res) {
-    console.log(req.user)
+app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
+    // console.log(req.params)
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
-            res.send(req.query.code)
+            // console.log(redirect_uri)
+            axios.post(req.body.redirect_uri, {
+                code: req.query.code
+            }).then(response => {})
+
+            res.status(200).send(req.query.code)
         }
     )
 });
+
+app.get("/auth/token", (req, res, next) => {
+    // req.body
+    console.log("Access token requested")
+    db.get("SELECT accessToken FROM Users WHERE authCode = ?",
+        req.body.code,
+        (err, row) => {
+            if (row == undefined) {
+                res.status(404)
+            } else {
+                axios.post(req.body.redirect_uri, {
+                    access_token: row.accessToken
+                }).then(response => {})
+
+                res.status(200).json({
+                    "access_token": row.accessToken
+                })
+            }
+        }
+    )
+})
 
 app.get("/auth/logout", (req, res) => {
     req.logout();
