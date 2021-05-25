@@ -36,25 +36,32 @@ passport.use(new GoogleStrategy({
             [profile.id, profile.displayName],
             (err, row) => {
                 if (row == undefined) {
-                    db.run('INSERT INTO Users(googleId, userName) VALUES (?, ?)',
-                        [profile.id, profile.displayName],
+                    db.run('INSERT INTO Users(googleId, userName, accessToken) VALUES (?, ?, ?)',
+                        [profile.id, profile.displayName, accessToken],
                         (err2, res) => {
                             error = err2
-                            user = {
-                                googleId: profile.id,
-                                userName: profile.displayName
-                            }
                             console.log("New entry into Users table")
-                            return cb(error, user)
+
+                            db.get(
+                                'SELECT rowid, googleId, userName FROM Users WHERE googleId = ? AND userName = ?',
+                                [profile.id, profile.displayName],
+                                (err3, newRow) => {
+                                    return cb(err3, newRow)
+                                }
+                            )
                         }
                     )
 
                 } else {
-                    error = err;
-                    user = row;
                     console.log("Already exist in Users table")
 
-                    return cb(error, user)
+                    db.run("UPDATE Users SET accessToken = ? WHERE googleId = ? AND userName = ?",
+                        [accessToken, profile.id, profile.displayName],
+                        (err4, res) => {
+                            console.log("updated Access Token")
+                            return cb(err4, row)
+                        }
+                    )
                 }
             }
         )

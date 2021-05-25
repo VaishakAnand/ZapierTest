@@ -73,7 +73,9 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
 
         db.run(`CREATE TABLE Users (
             googleId text,
-            userName text
+            userName text,
+            authCode text,
+            accessToken text
             )`,
             (err) => {
                 if (err) {

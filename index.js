@@ -53,8 +53,13 @@ app.get("/auth/google", passport.authenticate("google", {
 }));
 
 app.get("/auth/google/redirect", passport.authenticate('google', { failureMessage: "Failed" }), function (req, res) {
-    // console.log(req)
-    res.send(req.user.userName)
+    console.log(req.user)
+    db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
+        [req.query.code, req.user.rowid],
+        (err, result) => {
+            res.send(req.query.code)
+        }
+    )
 });
 
 app.get("/auth/logout", (req, res) => {
