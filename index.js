@@ -16,20 +16,6 @@ app.use(require('express-session')({
     secret: process.env.COOKIE_SECRET, resave: true, saveUninitialized: true
 }));
 
-// Auth middleware that checks if the user is logged in
-const isLoggedIn = (req, res, next) => {
-    if (req.user) {
-        next();
-    } else {
-        res.sendStatus(401);
-    }
-}
-// app.use(cookieSession({
-//     // milliseconds of a day
-//     maxAge: 24 * 60 * 60 * 1000,
-//     keys: [process.env.COOKIE_SECRET]
-// }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -46,15 +32,6 @@ app.listen(HTTP_PORT, () => {
 app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
-
-// const testMidd = (req, res, next) => {
-//     console.log("lol")
-//     next()
-// }
-
-// app.get("/auth", testMidd, (req, res) => {
-//     res.send(req.body.code)
-// })
 
 app.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"],
