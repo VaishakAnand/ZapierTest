@@ -68,9 +68,9 @@ app.post("/auth/token", (req, res, next) => {
             if (row == undefined) {
                 res.status(404)
             } else {
-                axios.post(req.body.redirect_uri, {
-                    access_token: row.accessToken
-                }).then(response => { }).catch(err => console.log(err))
+                // axios.post(req.body.redirect_uri, {
+                //     access_token: row.accessToken
+                // }).then(response => { }).catch(err => console.log(err))
 
                 res.status(200).json({
                     "access_token": row.accessToken
