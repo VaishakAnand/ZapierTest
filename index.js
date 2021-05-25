@@ -69,14 +69,14 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
             // console.log(redirect_uri)
             axios.post(req.body.redirect_uri, {
                 code: req.query.code
-            }).then(response => {})
+            }).then(response => { })
 
             res.status(200).send(req.query.code)
         }
     )
 });
 
-app.get("/auth/token", (req, res, next) => {
+app.post("/auth/token", (req, res, next) => {
     // req.body
     console.log("Access token requested")
     db.get("SELECT accessToken FROM Users WHERE authCode = ?",
@@ -87,7 +87,7 @@ app.get("/auth/token", (req, res, next) => {
             } else {
                 axios.post(req.body.redirect_uri, {
                     access_token: row.accessToken
-                }).then(response => {})
+                }).then(response => { })
 
                 res.status(200).json({
                     "access_token": row.accessToken
@@ -104,6 +104,27 @@ app.get("/auth/logout", (req, res) => {
 
     res.send(req.user);
 });
+
+const authenticateAT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+
+        db.get("SELECT rowid FROM Users WHERE accessToken = ?", token, (err, row) => {
+            if (row == undefined || err) {
+                return res.sendStatus(403);
+            }
+
+            next();
+        })
+    } else {
+        res.sendStatus(401);
+    }
+}
+
+app.get("/auth/test", authenticateAT, (req, res) => {
+    res.status(200).send("All good")
+})
 
 
 app.get("/attendees", (req, res, next) => {
