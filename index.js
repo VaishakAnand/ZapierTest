@@ -48,7 +48,7 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
                 code: req.query.code
             }).then(response => { })
 
-            res.status(200).send(req.query.code)
+            res.status(200)
         }
     )
 });
