@@ -30,7 +30,7 @@ passport.use(new GoogleStrategy({
         var user;
         var error;
 
-        console.log(accessToken)
+        // console.log(accessToken)
         db.get(
             'SELECT rowid, googleId, userName FROM Users WHERE googleId = ? AND userName = ?',
             [profile.id, profile.displayName],

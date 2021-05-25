@@ -35,6 +35,8 @@ app.get("/", (req, res, next) => {
 
 const getInfo = (req, res, next) => {
     console.log("query: ", req.query)
+    app.locals.state = req.query.state
+    app.locals.redirect_uri = req.query.redirect_uri
     next();
 }
 
@@ -45,14 +47,12 @@ app.get("/auth/google", getInfo, passport.authenticate("google", {
 
 app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
     console.log("Query after redirect is: ", req.query)
-    var uri = !req.query.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : req.body.redirect_uri
+    var uri = !app.locals.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : app.locals.redirect_uri
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
-            console.log("redirect_uri = ", req.body.redirect_uri)
-            uri = uri + "?code=" + req.query.code + "&state=done"
-            // axios.post(uri, {})
-
+            console.log("redirect_uri = ", app.locals.redirect_uri)
+            uri = uri + "?code=" + req.query.code + "&state=" + app.locals.state
             res.status(200).redirect(uri)
         }
     )
@@ -61,6 +61,7 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
 app.post("/auth/token", (req, res, next) => {
     // req.body
     console.log("Access token requested")
+    console.log(req.query)
     db.get("SELECT accessToken FROM Users WHERE authCode = ?",
         req.body.code,
         (err, row) => {
