@@ -33,7 +33,12 @@ app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
 
-app.get("/auth/google", passport.authenticate("google", {
+const getInfo = (req, res, next) => {
+    console.log(req.body)
+    next();
+}
+
+app.get("/auth/google", getInfo, passport.authenticate("google", {
     scope: ["profile", "email"],
     prompt: "select_account"
 }));
