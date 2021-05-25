@@ -34,7 +34,8 @@ app.get("/", (req, res, next) => {
 });
 
 const getInfo = (req, res, next) => {
-    console.log(req.body)
+    console.log("Body: " , req.body)
+    console.log("Params: ", req.params)
     next();
 }
 
