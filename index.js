@@ -4,22 +4,8 @@ var db = require('./database')
 const passport = require("passport")
 require('dotenv').config();
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const cookieSession = require('cookie-session')
+// const cookieSession = require('cookie-session')
 
-var app = express()
-app.use(express.json());
-app.use(express.urlencoded({
-    extended: false
-}));
-
-app.use(cookieSession({
-    // milliseconds of a day
-    maxAge: 24 * 60 * 60 * 1000,
-    keys: [process.env.COOKIE_SECRET]
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 
 passport.use(new GoogleStrategy({
@@ -32,7 +18,7 @@ passport.use(new GoogleStrategy({
         var error;
 
         db.get(
-            'SELECT * FROM Users WHERE googleId = ? AND userName = ?',
+            'SELECT rowid, googleId, userName FROM Users WHERE googleId = ? AND userName = ?',
             [profile.id, profile.displayName],
             (err, row) => {
                 if (row == undefined) {
@@ -60,26 +46,43 @@ passport.use(new GoogleStrategy({
     }
 ));
 
-passport.serializeUser((user, done) => {
+passport.serializeUser((user, cb) => {
     console.log("Serialising User")
-    done(null, 1);
+    cb(null, user.rowid);
     // done(null, user.googleId);
 });
 
-passport.deserializeUser((id, done) => {
+passport.deserializeUser((id, cb) => {
     db.get(
-        'SELECT * FROM Users WHERE googleId = ?',
+        'SELECT * FROM Users WHERE rowid = ?',
         id,
         (err, row) => {
             console.log(row)
-            return done(null, row)
+            return cb(null, row)
         }
     );
     console.log("Deserialising User")
-    // User.findById(id).then(user => {
-    //     done(null, user);
-    // });
 });
+
+
+
+var app = express()
+app.use(express.json());
+app.use(express.urlencoded({
+    extended: false
+}));
+app.use(require('express-session')({
+    secret: process.env.COOKIE_SECRET, resave: true, saveUninitialized: true
+}));
+// app.use(cookieSession({
+//     // milliseconds of a day
+//     maxAge: 24 * 60 * 60 * 1000,
+//     keys: [process.env.COOKIE_SECRET]
+// }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 
 // Server port
@@ -100,7 +103,7 @@ app.get("/auth/google", passport.authenticate("google", {
 }));
 
 app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
-    console.log("redirecting")
+    console.log(req.baseUrl)
     res.send(req.user.userName)
 });
 
