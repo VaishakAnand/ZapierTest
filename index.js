@@ -34,9 +34,6 @@ app.get("/", (req, res, next) => {
 });
 
 const getInfo = (req, res, next) => {
-    console.log("Body: " , req.body)
-    console.log("Params: ", req.params)
-    console.log("url: ", req.originalUrl)
     console.log("query: ", req.query)
     next();
 }
@@ -47,8 +44,8 @@ app.get("/auth/google", getInfo, passport.authenticate("google", {
 }));
 
 app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
-    // console.log(req.params)
-    var uri = !req.body.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : req.body.redirect_uri
+    console.log("Query after redirect is: ", req.query)
+    var uri = !req.query.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : req.body.redirect_uri
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
