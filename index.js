@@ -49,7 +49,7 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
                 params: {
                     code: req.query.code
                 }
-            }).then(response => { })
+            })
 
             res.status(200)
         }
