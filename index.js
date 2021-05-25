@@ -43,7 +43,7 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
-            // console.log(redirect_uri)
+            console.log("redirect_uri = ", req.body.redirect_uri)
             axios.post(req.body.redirect_uri, {
                 code: req.query.code
             }).then(response => { })
