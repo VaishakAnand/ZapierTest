@@ -46,9 +46,9 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
         (err, result) => {
             console.log("redirect_uri = ", req.body.redirect_uri)
             uri = uri + "?code=" + req.query.code
-            axios.post(uri, {})
+            // axios.post(uri, {})
 
-            res.status(200)
+            res.status(200).redirect(uri)
         }
     )
 });
