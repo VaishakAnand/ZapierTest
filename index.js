@@ -112,7 +112,7 @@ app.get("/auth/test", authenticateAT, (req, res) => {
 })
 
 
-app.get("/attendees", (req, res, next) => {
+app.get("/attendees", authenticateAT, (req, res, next) => {
     var sql = "select * from attendees"
     var params = []
     db.all(sql, params, (err, rows) => {
@@ -127,7 +127,7 @@ app.get("/attendees", (req, res, next) => {
     });
 });
 
-app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
+app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", authenticateAT, (req, res, next) => {
     var data = {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
@@ -185,7 +185,7 @@ app.post("/attendees/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
     })
 })
 
-app.post("/webhooks", (req, res, next) => {
+app.post("/webhooks", authenticateAT, (req, res, next) => {
     var data = {
         projectId: req.body.projectId,
         eventId: req.body.eventId,
@@ -209,7 +209,7 @@ app.post("/webhooks", (req, res, next) => {
     console.log(req.body.hookUrl)
 })
 
-app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
+app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", authenticateAT, (req, res, next) => {
     db.run(
         'DELETE FROM webhooks where projectId = ? and eventId = ? and ACTION_METHOD = ?',
         req.params.projectId, req.params.eventId, req.params.ACTION_METHOD,
@@ -223,7 +223,7 @@ app.delete("/webhooks/:projectId/:eventId/:ACTION_METHOD", (req, res, next) => {
     )
 })
 
-app.post("/checkin/:projectId/:eventId", (req, res, next) => {
+app.post("/checkin/:projectId/:eventId", authenticateAT, (req, res, next) => {
     var data = {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
