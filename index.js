@@ -40,15 +40,16 @@ app.get("/auth/google", passport.authenticate("google", {
 
 app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
     // console.log(req.params)
+    var uri = !req.body.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : req.body.redirect_uri
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
             console.log("redirect_uri = ", req.body.redirect_uri)
-            axios.post(req.body.redirect_uri, {
+            axios.post(uri, {
                 code: req.query.code
             }).then(response => { })
 
-            res.status(200).redirect(req.body.redirect_uri)
+            res.status(200).redirect(uri)
         }
     )
 });
