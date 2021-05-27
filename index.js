@@ -46,8 +46,7 @@ app.get("/auth/google", getInfo, passport.authenticate("google", {
 }));
 
 app.get("/auth/google/redirect", passport.authenticate('google'), function (req, res) {
-    console.log("Query after redirect is: ", req.query)
-    var uri = !app.locals.redirect_uri ? "https://zapier.com/dashboard/auth/oauth/return/App136570CLIAPI/" : app.locals.redirect_uri
+    var uri = app.locals.redirect_uri
     db.run("UPDATE Users set authCode = ? WHERE rowid = ?",
         [req.query.code, req.user.rowid],
         (err, result) => {
@@ -61,17 +60,12 @@ app.get("/auth/google/redirect", passport.authenticate('google'), function (req,
 app.post("/auth/token", (req, res, next) => {
     // req.body
     console.log("Access token requested")
-    console.log(req.body)
     db.get("SELECT accessToken FROM Users WHERE authCode = ?",
         req.body.code,
         (err, row) => {
             if (row == undefined) {
                 res.status(404)
             } else {
-                // axios.post(req.body.redirect_uri, {
-                //     access_token: row.accessToken
-                // }).then(response => { }).catch(err => console.log(err))
-
                 res.status(200).json({
                     "access_token": row.accessToken
                 })
