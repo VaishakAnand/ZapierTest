@@ -89,14 +89,15 @@ const authenticateAT = (req, res, next) => {
         res.locals.accessToken = token
         db.get("SELECT rowid, userName FROM Users WHERE accessToken = ?", token, (err, row) => {
             if (row == undefined || err) {
-                return res.sendStatus(403);
+                return res.status(403).send("Invalid Access");
             }
             res.locals.userName = row.userName;
             res.locals.rowid = row.rowid
             next();
         })
     } else {
-        res.sendStatus(401);
+        console.log("No Auth Token")
+        res.status(401).send("Unauthorised");
     }
 }
 
@@ -263,37 +264,29 @@ app.post("/checkin/:projectId/:eventId", authenticateAT, (req, res, next) => {
 
 app.get("/userevents", authenticateAT, (req, res, next) => {
     var rowid = res.locals.rowid
-    var getEventDetails = 'SELECT projectId, eventId FROM UsersToEvents WHERE rowid = ?'
-    db.all(getEventDetails, rowid, (err2, rows) => {
-        if (err2) {
-            res.status(400).json({ "error": err2.message })
+    var getEventDetails = `SELECT UsersToEvents.projectId, UsersToEvents.eventId, Events.eventName 
+        FROM (UsersToEvents JOIN Events on UsersToEvents.projectId = Events.projectId 
+        and UsersToEvents.eventId = Events.eventId) WHERE rowid = ?`
+    db.all(getEventDetails, rowid, (err, rows) => {
+        if (err) {
+            res.status(400).json({ "error": err.message })
             return;
         }
 
-        var events = []
-        rows.forEach(x => {
-            db.get('SELECT eventName FROM Events where projectId = ? and eventId = ?', [x.projectId, x.eventId], (err3, row2) => {
-                if (err3) {
-                    res.status(400).json({ "error": err3.message })
-                    return;
-                }
-                x.eventName = row2.eventName
-                events.push(x)
-            })
+        res.status(200).json({
+            "event": rows // [{projectId: x1, eventId: x2, eventName: x3}, {projectId: y1, eventId: y2, eventName: y3}]
         })
-        var userEvents = {
-            "event": events // [{projectId: x1, eventId: x2, eventName: x3}, {projectId: y1, eventId: y2, eventName: y3}]
-        }
-        res.status(200).json(userEvents)
+
     })
 })
 
 app.post("/userevents", authenticateAT, (req, res) => {
+    console.log(res.locals.rowid)
     var query = 'INSERT INTO UsersToEvents VALUES (?, ?, ?)'
     var params = [res.locals.rowid, req.body.projectId, req.body.eventId]
     db.run(query, params, (err, result) => {
         if (err) {
-            res.status(400).json({ "error": err2.message })
+            res.status(400).json({ "error": err.message })
             return;
         }
         res.status(200).json({
@@ -304,7 +297,7 @@ app.post("/userevents", authenticateAT, (req, res) => {
     })
 })
 
-app.get("event/:projectId/:eventId", authenticateAT, (req, res, next) => {
+app.get("/event/:projectId/:eventId", authenticateAT, (req, res, next) => {
     var query = 'SELECT firstname, lastname, email, company, job_title, ticket_name, ticket_no FROM EventRequiredFields WHERE projectId = ? and eventId = ?'
     var params = [req.params.projectId, req.params.eventId]
     db.get(query, params, (err, row) => {
@@ -313,6 +306,9 @@ app.get("event/:projectId/:eventId", authenticateAT, (req, res, next) => {
             return;
         }
 
+        if (!row) {
+            return res.status(404).send("Event details not found");
+        }
         res.status(200).json(row)
     })
 })

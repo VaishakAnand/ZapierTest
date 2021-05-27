@@ -114,7 +114,6 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             projectId text,
             eventId text,
             PRIMARY KEY(rowid, projectId, eventId),
-            FOREIGN KEY(rowid) references Users(rowid),
             FOREIGN KEY(projectId, eventId) references Events(projectId, eventId)
             )`,
             (err) => {
