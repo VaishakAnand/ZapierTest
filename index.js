@@ -66,6 +66,7 @@ app.post("/auth/token", (req, res, next) => {
             if (row == undefined) {
                 res.status(404)
             } else {
+                console.log("Access Token: ", row.accessToken)
                 res.status(200).json({
                     "access_token": row.accessToken
                 })
