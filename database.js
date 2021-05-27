@@ -37,7 +37,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             eventId text,
             ACTION_METHOD text,
             hookUrl text,
-            primary key(projectId, eventId, ACTION_METHOD)
+            PRIMARY KEY(projectId, eventId, ACTION_METHOD)
             )`,
             (err) => {
                 if (err) {
@@ -84,6 +84,75 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 } else {
                     // Table just created, creating some rows
                     // console.log("Users table newly created")
+                }
+            }
+        )
+        
+        db.run(`CREATE TABLE Events (
+            projectId text,
+            eventId text,
+            eventName text,
+            PRIMARY KEY(projectId, eventId)
+            )`,
+            (err) => {
+                if (err) {
+                    // Table already created
+                    // console.log("Users table already created")
+                } else {
+                    // Table just created, creating some rows
+                    // console.log("Users table newly created")
+                    var insert = `INSERT INTO Events VALUES(?,?,?)`
+                    db.run(insert, ["00001", "00001", "IT SHOW 2021"])
+                    db.run(insert, ["00001", "00002", "COMEX 2021"])
+                    db.run(insert, ["00002", "00001", "Research Exhibition"])
+                }
+            }
+        )
+
+        db.run(`CREATE TABLE UsersToEvents (
+            rowid integer,
+            projectId text,
+            eventId text,
+            PRIMARY KEY(rowid, projectId, eventId),
+            FOREIGN KEY(rowid) references Users(rowid),
+            FOREIGN KEY(projectId, eventId) references Events(projectId, eventId)
+            )`,
+            (err) => {
+                if (err) {
+                    // Table already created
+                    // console.log("Users table already created")
+                } else {
+                    // Table just created, creating some rows
+                    // console.log("Users table newly created")
+                }
+            }
+        )
+
+        db.run(`CREATE TABLE EventRequiredFields (
+            projectId text,
+            eventId text,
+            firstname BOOLEAN NOT NULL CHECK (firstname IN (0, 1)),
+            lastname BOOLEAN NOT NULL CHECK (lastname IN (0, 1)), 
+            email BOOLEAN NOT NULL CHECK (email IN (0, 1)),
+            company BOOLEAN NOT NULL CHECK (company IN (0, 1)),
+            job_title BOOLEAN NOT NULL CHECK (job_title IN (0, 1)),
+            ticket_name BOOLEAN NOT NULL CHECK (ticket_name IN (0, 1)),
+            ticket_no BOOLEAN NOT NULL CHECK (ticket_no IN (0, 1)),
+            PRIMARY KEY(projectId, eventId),
+            FOREIGN KEY(projectId, eventId) references Events(projectId, eventId)
+            )`,
+            (err) => {
+                if (err) {
+                    // Table already created
+                    // console.log("Users table already created")
+                } else {
+                    // Table just created, creating some rows
+                    // console.log("Users table newly created")
+                    var insert = `INSERT INTO EventRequiredFields (projectId, eventId, firstname, lastname, email, company, job_title, ticket_name, ticket_no) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                    db.run(insert, ["00001", "00001", 1, 1, 1, 1, 1, 1, 1])
+                    db.run(insert, ["00001", "00002", 1, 1, 1, 1, 1, 0, 1])
+                    db.run(insert, ["00002", "00001", 1, 1, 1, 0, 0, 0, 1])
                 }
             }
         )
