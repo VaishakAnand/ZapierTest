@@ -310,7 +310,13 @@ app.get("/event/:projectId/:eventId", authenticateAT, (req, res, next) => {
         if (!row) {
             return res.status(404).send("Event details not found");
         }
-        res.status(200).json(row)
+        var newObj = []
+        for (const property in row) {
+            if (row[property] === 1) {
+                newObj.push({ key: property, type: 'string', required: true })
+            }
+        }
+        res.status(200).json(newObj)
     })
 })
 
