@@ -320,6 +320,11 @@ app.get("/event/:projectId/:eventId", authenticateAT, (req, res, next) => {
     })
 })
 
+app.post("/sendData", (req, res) => {
+    console.log(req.body)
+    res.status(200)
+})
+
 // Default response for any other request
 app.use(function (req, res) {
     res.status(404);
