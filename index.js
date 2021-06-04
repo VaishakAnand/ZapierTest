@@ -33,6 +33,11 @@ app.get("/", (req, res, next) => {
     res.json({ "message": "Ok" })
 });
 
+app.post("/senddata", (req, res, next) => {
+    console.log(req.body)
+    res.json({ "message": "Ok" })
+})
+
 const getInfo = (req, res, next) => {
     console.log("query: ", req.query)
     app.locals.state = req.query.state
@@ -318,11 +323,6 @@ app.get("/event/:projectId/:eventId", authenticateAT, (req, res, next) => {
         }
         res.status(200).json(newObj)
     })
-})
-
-app.post("/sendData", (req, res) => {
-    console.log(req.body)
-    res.status(200)
 })
 
 // Default response for any other request
