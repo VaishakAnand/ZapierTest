@@ -6,7 +6,7 @@ const passport = require("passport")
 require('dotenv').config();
 require('./passport-setup');
 var multer = require('multer')
-var upload = multer()
+var upload = multer({ dest: 'uploads/' })
 
 var app = express()
 app.use(cors())
@@ -39,6 +39,17 @@ app.post("/senddata", (req, res, next) => {
     console.log(req.body)
     res.json({ "message": "Ok" })
 })
+
+app.post('/image', upload.single('avatar'), function (req, res, next) {
+    // req.file is the `avatar` file
+    if (req.file) {
+        console.log("Uploaded file exists")
+    }
+    console.log(req.body)
+    res.json({ "message": "Ok" })
+    // req.body will hold the text fields, if there were any
+})
+
 
 app.post('/form', upload.none(), function (req, res, next) {
     // req.body contains the text fields
