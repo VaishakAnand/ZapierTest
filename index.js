@@ -5,6 +5,8 @@ const cors = require('cors')
 const passport = require("passport")
 require('dotenv').config();
 require('./passport-setup');
+var multer = require('multer')
+var upload = multer()
 
 var app = express()
 app.use(cors())
@@ -34,6 +36,12 @@ app.get("/", (req, res, next) => {
 });
 
 app.post("/senddata", (req, res, next) => {
+    console.log(req.body)
+    res.json({ "message": "Ok" })
+})
+
+app.post('/form', upload.none(), function (req, res, next) {
+    // req.body contains the text fields
     console.log(req.body)
     res.json({ "message": "Ok" })
 })
