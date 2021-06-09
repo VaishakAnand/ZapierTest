@@ -40,7 +40,7 @@ app.post("/senddata", (req, res, next) => {
     res.json({ "message": "Ok" })
 })
 
-app.post('/image', upload.single('avatar'), function (req, res, next) {
+app.post('/image', upload.single('profilePhoto'), function (req, res, next) {
     // req.file is the `avatar` file
     if (req.file) {
         console.log("Uploaded file exists")
