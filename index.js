@@ -43,13 +43,14 @@ app.post("/senddata", (req, res, next) => {
 app.post('/image', upload.single('profilePhoto'), function (req, res, next) {
     // req.file is the `avatar` file
     if (req.file) {
-        console.log("Uploaded file exists")
+        console.log("IMAGE: ", req.file)
     }
     console.log(req.body)
     res.json({ "message": "Ok" })
     // req.body will hold the text fields, if there were any
 })
 
+app.get('/showimage')
 
 app.post('/form', upload.none(), function (req, res, next) {
     // req.body contains the text fields
