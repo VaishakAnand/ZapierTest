@@ -6,7 +6,18 @@ const passport = require("passport")
 require('dotenv').config();
 require('./passport-setup');
 var multer = require('multer')
-var upload = multer({ dest: 'uploads/' })
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, 'profilePhoto')
+  }
+})
+
+const upload = multer({ storage: storage })
+
+const fs = require('fs')
 
 var app = express()
 app.use(cors())
@@ -14,6 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: false
 }));
+// app.use(express.static('public'));
 app.use(require('express-session')({
     secret: process.env.COOKIE_SECRET, resave: true, saveUninitialized: true
 }));
@@ -42,15 +54,19 @@ app.post("/senddata", (req, res, next) => {
 
 app.post('/image', upload.single('profilePhoto'), function (req, res, next) {
     // req.file is the `avatar` file
-    if (req.file) {
-        console.log("IMAGE: ", req.file)
+    try {
+        if (fs.existsSync('./uploads/profilePhoto.png')) {
+            console.log("FILE EXISTS")
+        }
+    } catch (err) {
+        console.error(err)
     }
     console.log(req.body)
     res.json({ "message": "Ok" })
     // req.body will hold the text fields, if there were any
 })
 
-app.get('/showimage')
+
 
 app.post('/form', upload.none(), function (req, res, next) {
     // req.body contains the text fields
