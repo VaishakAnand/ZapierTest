@@ -6,17 +6,7 @@ const passport = require("passport")
 require('dotenv').config();
 require('./passport-setup');
 var multer = require('multer')
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'profilePhoto')
-  }
-})
-
-const upload = multer({ storage: storage })
-
+var upload = multer({ dest: 'uploads/' })
 const fs = require('fs')
 
 var app = express()
@@ -61,7 +51,6 @@ app.post('/image', upload.single('profilePhoto'), function (req, res, next) {
         console.log("No file")
     }
     res.json({ "message": "Ok" })
-    // req.body will hold the text fields, if there were any
 })
 
 
