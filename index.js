@@ -54,14 +54,12 @@ app.post("/senddata", (req, res, next) => {
 
 app.post('/image', upload.single('profilePhoto'), function (req, res, next) {
     // req.file is the `avatar` file
-    try {
-        if (fs.existsSync('./uploads/profilePhoto.png')) {
-            console.log("FILE EXISTS")
-        }
-    } catch (err) {
-        console.error(err)
+    if (req.file) {
+        console.log("Filename: ", req.file.filename)
+        console.log("Stream: ", req.file.stream)
+    } else {
+        console.log("No file")
     }
-    console.log(req.body)
     res.json({ "message": "Ok" })
     // req.body will hold the text fields, if there were any
 })
